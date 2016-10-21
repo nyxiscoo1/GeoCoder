@@ -1,0 +1,182 @@
+﻿<Window x:Class="GeoCoder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GeoCoder"
+        mc:Ignorable="d"
+        Title="GeoCoder v1.1" Height="600" Width="1000" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="250" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Адреса" TextAlignment="Center" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="Широта" TextAlignment="Center" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Долгота" TextAlignment="Center" />
+            <TextBlock Grid.Row="0" Grid.Column="3" Text="Метро" TextAlignment="Center" />
+
+            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding Adresses}" AcceptsReturn="True"  Margin="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Lattitudes}" Margin="5" VerticalScrollBarVisibility="Auto"/>
+            <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Longitudes}" Margin="5" VerticalScrollBarVisibility="Auto"/>
+            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Metros}" Margin="5" VerticalScrollBarVisibility="Auto"/>
+        </Grid>
+
+        <TextBox Grid.Row="1" Text="{Binding Error}" Foreground="Crimson"  Margin="5"/>
+
+
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+
+            <ProgressBar Grid.Column="0" Maximum="{Binding MaxProgress}" Value="{Binding CurrentProgress}" Margin="5" Height="10"></ProgressBar>
+
+            <Button Grid.Column="1" Command="{Binding Code}" Height="25" Margin="5" Content="{Binding CodeCommandText}" />
+        </Grid>
+    </Grid>
+</Window>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
