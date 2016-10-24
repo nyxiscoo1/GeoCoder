@@ -40,6 +40,7 @@ namespace GeoCoder
             //Adresses = "Воронеж, Московский пр., 129/1";
 
             GoogleApiKey = LoadGoogleApiKey();
+            Adresses = LoadAddresses();
         }
 
         private string LoadGoogleApiKey()
@@ -78,6 +79,41 @@ namespace GeoCoder
             return apiFilePath;
         }
 
+        private string LoadAddresses()
+        {
+            try
+            {
+                var apiFilePath = AddressesFilePath();
+
+                if (File.Exists(apiFilePath))
+                    return File.ReadAllText(apiFilePath, Encoding.UTF8);
+            }
+            catch (Exception exc)
+            {
+                Error = "Ошибка загрузки сохраненного ключа" + Environment.NewLine + exc;
+            }
+
+            return string.Empty;
+        }
+
+        private void SaveAddresses()
+        {
+            try
+            {
+                var apiFilePath = AddressesFilePath();
+                File.WriteAllText(apiFilePath, Adresses, Encoding.UTF8);
+            }
+            catch (Exception exc)
+            {
+                Error = "Ошибка сохранения ключа" + Environment.NewLine + exc;
+            }
+        }
+
+        private static string AddressesFilePath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "adresses.txt");
+        }
+
         public ICommand YandexGeoCode
         {
             get { return new DelegatingCommand(YandexGeoCodeImpl); }
@@ -96,6 +132,8 @@ namespace GeoCoder
                 OnPropertyChanged(nameof(CanGoogleGeoCode));
                 return;
             }
+
+            SaveAddresses();
 
             YandexCodeCommandText = "Стоп";
             OnPropertyChanged(nameof(YandexCodeCommandText));
@@ -212,6 +250,7 @@ namespace GeoCoder
                 return;
             }
 
+            SaveAddresses();
             SaveGoogleApiKey();
 
             if (string.IsNullOrWhiteSpace(GoogleApiKey))
@@ -228,8 +267,6 @@ namespace GeoCoder
             _isStarted = true;
             Error = string.Empty;
             OnPropertyChanged(nameof(Error));
-
-            
 
             var lat = new StringBuilder();
             var lon = new StringBuilder();
@@ -262,8 +299,8 @@ namespace GeoCoder
                             Error += $", {data.error_message ?? "нет описания"}";
 
                         OnPropertyChanged(nameof(Error));
-                        lat.AppendLine(data.status);
-                        lon.AppendLine(data.status);
+                        lat.AppendLine(string.Empty);
+                        lon.AppendLine(string.Empty);
                     }
                     else
                     {
@@ -289,7 +326,7 @@ namespace GeoCoder
                     break;
                 }
 
-                Thread.Sleep(1200); // limit: 50 req/sec
+                await Task.Delay(1200); // limit: 50 req/sec
             }
 
             Lattitudes = lat.ToString();
