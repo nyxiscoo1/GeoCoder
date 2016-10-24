@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GeoCoder"
         mc:Ignorable="d"
-        Title="GeoCoder v1.1" Height="600" Width="1000" WindowStartupLocation="CenterScreen">
+        Title="GeoCoder v1.2" Height="600" Width="1000" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -49,7 +50,21 @@
 
             <ProgressBar Grid.Column="0" Maximum="{Binding MaxProgress}" Value="{Binding CurrentProgress}" Margin="5" Height="10"></ProgressBar>
 
-            <Button Grid.Column="1" Command="{Binding Code}" Height="25" Margin="5" Content="{Binding CodeCommandText}" />
+            <Button Grid.Column="1" Command="{Binding YandexGeoCode}" Height="25" Margin="5" Content="{Binding YandexCodeCommandText}" IsEnabled="{Binding CanYandexGeoCode}"/>
+        </Grid>
+
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock VerticalAlignment="Center" Margin="5">API ключ</TextBlock>
+            <TextBox Grid.Column="1" Text="{Binding GoogleApiKey}" Margin="5"></TextBox>
+
+            <Button Grid.Column="2" Command="{Binding GoogleGeoCode}" Height="25" Margin="5" Content="{Binding GoogleCodeCommandText}" IsEnabled="{Binding CanGoogleGeoCode}"/>
         </Grid>
     </Grid>
 </Window>

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GeoCoder;
+﻿using GeoCoder;
+using GeoCoder.Yandex;
 using NUnit.Framework;
 
-namespace Tests
+namespace Tests.Yandex
 {
     [TestFixture]
     public class GeoCoderResponseTests

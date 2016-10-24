@@ -63,6 +63,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DelegatingCommand.cs" />
+    <Compile Include="GeoCoderViewModel.cs" />
+    <Compile Include="Google\GeoCodeApiResult.cs" />
+    <Compile Include="Google\Geometry.cs" />
+    <Compile Include="Google\Location.cs" />
+    <Compile Include="JsonExtentions.cs" />
+    <Compile Include="Yandex\GeoCoderApiResponse.cs" />
+    <Compile Include="Yandex\featureMember.cs" />
+    <Compile Include="Yandex\GeoCoderResponse.cs" />
+    <Compile Include="Yandex\GeoObject.cs" />
+    <Compile Include="Yandex\GeoObjectCollection.cs" />
+    <Compile Include="Yandex\Point.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -71,6 +83,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Google\GeoCodeApiResponse.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -105,6 +118,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
