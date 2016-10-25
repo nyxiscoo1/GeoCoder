@@ -162,27 +162,50 @@ namespace GeoCoder
                 CurrentProgress++;
                 OnPropertyChanged(nameof(CurrentProgress));
 
+                string content = string.Empty;
+                string metroContent = string.Empty;
                 try
                 {
-                    var data = await YandexGeoCoderApiRequest(address, "house");
+                    content = string.Empty;
+                    metroContent = string.Empty;
+
+                    var tuple = await YandexGeoCoderApiRequest(address, "house");
+
+                    content = tuple.Item1;
+                    var data = tuple.Item2;
 
                     var coords = data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.Split(' ');
-                    lat.AppendLine(coords[1]);
-                    lon.AppendLine(coords[0]);
-
-                    var metroData = await YandexGeoCoderApiRequest(data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos, "metro");
-                    if (metroData.response.GeoObjectCollection.featureMember.Length > 0)
+                    if (data.response.GeoObjectCollection.featureMember.Length > 0)
                     {
-                        metro.AppendLine(metroData.response.GeoObjectCollection.featureMember[0].GeoObject.name);
+                        lat.AppendLine(coords[1]);
+                        lon.AppendLine(coords[0]);
+
+                        var metroTuple = await YandexGeoCoderApiRequest(data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos, "metro");
+
+                        metroContent = metroTuple.Item1;
+                        var metroData = metroTuple.Item2;
+
+                        if (metroData.response.GeoObjectCollection.featureMember.Length > 0)
+                        {
+                            metro.AppendLine(metroData.response.GeoObjectCollection.featureMember[0].GeoObject.name);
+                        }
+                        else
+                        {
+                            metro.AppendLine(string.Empty);
+                        }
                     }
                     else
                     {
+                        Error += address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+
+                        lat.AppendLine(string.Empty);
+                        lon.AppendLine(string.Empty);
                         metro.AppendLine(string.Empty);
                     }
                 }
                 catch (Exception exc)
                 {
-                    Error = address + Environment.NewLine + exc;
+                    Error += address + Environment.NewLine + exc + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
                     OnPropertyChanged(nameof(Error));
                     break;
                 }
@@ -203,7 +226,7 @@ namespace GeoCoder
             OnPropertyChanged(nameof(CanGoogleGeoCode));
         }
 
-        private async Task<GeoCoderApiResponse> YandexGeoCoderApiRequest(string address, string kind)
+        private async Task<Tuple<string, GeoCoderApiResponse>> YandexGeoCoderApiRequest(string address, string kind)
         {
             var queryUrl = BuildQueryUrl(address, kind);
 
@@ -213,7 +236,7 @@ namespace GeoCoder
             var content = await response.Content.ReadAsStringAsync();
 
             var data = content.JsonDeserialize<GeoCoderApiResponse>();
-            return data;
+            return Tuple.Create(content, data);
         }
 
         private static string BuildQueryUrl(string address, string kind)

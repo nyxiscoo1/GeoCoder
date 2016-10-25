@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GeoCoder"
         mc:Ignorable="d"
-        Title="GeoCoder v1.2" Height="600" Width="1000" WindowStartupLocation="CenterScreen">
+        Title="GeoCoder v1.2.1" Height="600" Width="1000" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
