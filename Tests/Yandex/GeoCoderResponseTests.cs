@@ -80,6 +80,9 @@ namespace Tests.Yandex
             Assert.IsNotNull(response.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
             Assert.IsNotNull(response.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos);
             Assert.AreEqual("39.177533 51.717747", response.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos);
+            Assert.AreEqual("Воронеж", response.response.GeoObjectCollection.featureMember[0].LocalityName());
+            Assert.AreEqual("Воронежская область", response.response.GeoObjectCollection.featureMember[0].AdministrativeAreaName());
+            Assert.AreEqual("городской округ Воронеж", response.response.GeoObjectCollection.featureMember[0].SubAdministrativeAreaName());
         }
     }
 }

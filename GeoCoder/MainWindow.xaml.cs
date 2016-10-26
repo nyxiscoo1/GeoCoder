@@ -12,6 +12,8 @@ namespace GeoCoder
             InitializeComponent();
 
             DataContext = new GeoCoderViewModel();
+
+            Title = "GeoCoder v" + GetType().Assembly.GetName().Version;
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using GeoCoder.Annotations;
@@ -26,6 +26,9 @@ namespace GeoCoder
         public string Lattitudes { get; set; } = string.Empty;
         public string Longitudes { get; set; } = string.Empty;
         public string Metros { get; set; } = string.Empty;
+        public string AdministrativeAreaNames { get; set; } = string.Empty;
+        public string SubAdministrativeAreaNames { get; set; } = string.Empty;
+        public string LocalityNames { get; set; } = string.Empty;
         public string Error { get; set; } = string.Empty;
         public string GoogleApiKey { get; set; } = string.Empty;
 
@@ -146,6 +149,9 @@ namespace GeoCoder
             var lat = new StringBuilder();
             var lon = new StringBuilder();
             var metro = new StringBuilder();
+            var administrativeAreaName = new StringBuilder();
+            var subAdministrativeAreaName = new StringBuilder();
+            var localityName = new StringBuilder();
 
             var addresses = Adresses.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -174,13 +180,31 @@ namespace GeoCoder
                     content = tuple.Item1;
                     var data = tuple.Item2;
 
-                    var coords = data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.Split(' ');
-                    if (data.response.GeoObjectCollection.featureMember.Length > 0)
+                    var feature = data.response.GeoObjectCollection.featureMember.FirstOrDefault();
+
+                    if (feature != null)
                     {
+                        var coords = feature.GeoObject.Point.pos.Split(' ');
                         lat.AppendLine(coords[1]);
                         lon.AppendLine(coords[0]);
 
-                        var metroTuple = await YandexGeoCoderApiRequest(data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos, "metro");
+                        administrativeAreaName.AppendLine(feature.AdministrativeAreaName());
+                        subAdministrativeAreaName.AppendLine(feature.SubAdministrativeAreaName());
+                        localityName.AppendLine(feature.LocalityName());
+
+                        if (string.IsNullOrEmpty(feature.LocalityName()))
+                        {
+                            Error += "LocalityName == null" + Environment.NewLine + address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+                            OnPropertyChanged(nameof(Error));
+                        }
+
+                        //if (string.IsNullOrEmpty(feature.SubAdministrativeAreaName()))
+                        //{
+                        //    Error += "SubAdministrativeAreaName == null" + Environment.NewLine + address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+                        //    OnPropertyChanged(nameof(Error));
+                        //}
+
+                        var metroTuple = await YandexGeoCoderApiRequest(feature.GeoObject.Point.pos, "metro");
 
                         metroContent = metroTuple.Item1;
                         var metroData = metroTuple.Item2;
@@ -197,10 +221,14 @@ namespace GeoCoder
                     else
                     {
                         Error += address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+                        OnPropertyChanged(nameof(Error));
 
                         lat.AppendLine(string.Empty);
                         lon.AppendLine(string.Empty);
                         metro.AppendLine(string.Empty);
+                        administrativeAreaName.AppendLine(string.Empty);
+                        subAdministrativeAreaName.AppendLine(string.Empty);
+                        localityName.AppendLine(string.Empty);
                     }
                 }
                 catch (Exception exc)
@@ -214,10 +242,17 @@ namespace GeoCoder
             Lattitudes = lat.ToString();
             Longitudes = lon.ToString();
             Metros = metro.ToString();
+            AdministrativeAreaNames = administrativeAreaName.ToString();
+            SubAdministrativeAreaNames = subAdministrativeAreaName.ToString();
+            LocalityNames = localityName.ToString();
 
             OnPropertyChanged(nameof(Lattitudes));
             OnPropertyChanged(nameof(Longitudes));
             OnPropertyChanged(nameof(Metros));
+            OnPropertyChanged(nameof(AdministrativeAreaNames));
+            OnPropertyChanged(nameof(SubAdministrativeAreaNames));
+            OnPropertyChanged(nameof(LocalityNames));
+
 
             _isStarted = false;
             YandexCodeCommandText = "Yandex";
@@ -355,10 +390,16 @@ namespace GeoCoder
             Lattitudes = lat.ToString();
             Longitudes = lon.ToString();
             Metros = metro.ToString();
+            AdministrativeAreaNames = string.Empty;
+            SubAdministrativeAreaNames = string.Empty;
+            LocalityNames = string.Empty;
 
             OnPropertyChanged(nameof(Lattitudes));
             OnPropertyChanged(nameof(Longitudes));
             OnPropertyChanged(nameof(Metros));
+            OnPropertyChanged(nameof(AdministrativeAreaNames));
+            OnPropertyChanged(nameof(SubAdministrativeAreaNames));
+            OnPropertyChanged(nameof(LocalityNames));
 
             _isStarted = false;
             GoogleCodeCommandText = "Google";
