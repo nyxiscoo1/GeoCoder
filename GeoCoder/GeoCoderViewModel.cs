@@ -251,11 +251,15 @@ namespace GeoCoder
                         if (metroData.response.GeoObjectCollection.featureMember.Length > 0)
                         {
                             metro.AppendLine(metroData.response.GeoObjectCollection.featureMember[0].GeoObject.name);
+                            record.Metro = metroData.response.GeoObjectCollection.featureMember[0].GeoObject.name;
                         }
                         else
                         {
                             metro.AppendLine(string.Empty);
+                            record.Metro = string.Empty;
                         }
+
+                        
 
                         Records.Add(record);
                     }
