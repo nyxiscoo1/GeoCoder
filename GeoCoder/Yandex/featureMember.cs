@@ -61,5 +61,15 @@ namespace GeoCoder.Yandex
                 GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
                 string.Empty;
         }
+
+        public string Precision()
+        {
+            return GeoObject.metaDataProperty["GeocoderMetaData"]?.Value<string>("precision") ?? string.Empty;
+        }
+
+        public string Text()
+        {
+            return GeoObject.metaDataProperty["GeocoderMetaData"]?.Value<string>("text") ?? string.Empty;
+        }
     }
 }
