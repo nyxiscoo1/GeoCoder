@@ -4,11 +4,15 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using GeoCoder.Annotations;
+using GeoCoder.DaData;
 using GeoCoder.Google;
 using GeoCoder.Yandex;
 using Quiche;
@@ -27,6 +31,39 @@ namespace GeoCoder
         public string Error { get; set; }
         public string Content { get; set; }
         public featureMember[] Features { get; set; }
+        public string Precision { get; set; }
+        public string MetroContent { get; set; }
+    }
+
+    public class DaDataGateway
+    {
+        private readonly HttpClient _client;
+
+        public DaDataGateway()
+        {
+            _client = new HttpClient();
+        }
+
+        public async Task<Tuple<string, DaDataAddressResponse[]>> Check(string address, string apiKey, string secretKey)
+        {
+            string request = new[]
+            {
+                address
+            }.JsonSerialize();
+
+            var content = new StringContent(request, Encoding.UTF8);
+
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            _client.DefaultRequestHeaders.Clear();
+            _client.DefaultRequestHeaders.Add("Authorization", "Token " + apiKey);
+            _client.DefaultRequestHeaders.Add("X-Secret", secretKey);
+
+            var response = await _client.PostAsync("https://dadata.ru/api/v2/clean/address", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return Tuple.Create(responseContent, DaDataAddressResponse.Parse(responseContent));
+        }
     }
 
     public class GeoCoderViewModel : INotifyPropertyChanged
@@ -48,13 +85,60 @@ namespace GeoCoder
 
         private readonly HttpClient _client;
 
+        private readonly DaDataGateway _daData;
+        private readonly DaDataSettings _daDataSettings;
+
         public GeoCoderViewModel()
         {
             _client = new HttpClient();
+            _daData = new DaDataGateway();
             //Adresses = "Воронеж, Московский пр., 129/1";
 
             GoogleApiKey = LoadGoogleApiKey();
             Adresses = LoadAddresses();
+
+            _daDataSettings = LoadDaDataSettings();
+        }
+
+        private DaDataSettings LoadDaDataSettings()
+        {
+            try
+            {
+                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, typeof(DaDataSettings) + ".json");
+
+                if (File.Exists(filePath))
+                {
+                    return File.ReadAllText(filePath, Encoding.UTF8).JsonDeserialize<DaDataSettings>();
+                }
+            }
+            catch (Exception exc)
+            {
+                Error = "Ошибка загрузки настроек DaData" + Environment.NewLine + exc;
+            }
+
+            return new DaDataSettings();
+        }
+
+        private void SaveDaDataSettings(DaDataSettings settings)
+        {
+            try
+            {
+                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, typeof(DaDataSettings) + ".json");
+
+                string text = settings.JsonSerialize();
+
+                File.WriteAllText(filePath, text, Encoding.UTF8);
+
+                if (File.Exists(filePath))
+                {
+                    File.ReadAllText(filePath, Encoding.UTF8).JsonDeserialize<DaDataSettings>();
+                }
+            }
+            catch (Exception exc)
+            {
+                Error += "Ошибка сохранения настроек DaData" + Environment.NewLine + exc;
+                OnPropertyChanged(nameof(Error));
+            }
         }
 
         private string LoadGoogleApiKey()
@@ -159,13 +243,6 @@ namespace GeoCoder
             Error = string.Empty;
             OnPropertyChanged(nameof(Error));
 
-            var lat = new StringBuilder();
-            var lon = new StringBuilder();
-            var metro = new StringBuilder();
-            var administrativeAreaName = new StringBuilder();
-            var subAdministrativeAreaName = new StringBuilder();
-            var localityName = new StringBuilder();
-
             var addresses = Adresses.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
             CurrentProgress = 0;
@@ -181,117 +258,64 @@ namespace GeoCoder
                 CurrentProgress++;
                 OnPropertyChanged(nameof(CurrentProgress));
 
-                string content = string.Empty;
-                string metroContent = string.Empty;
+
+                var record = new GeoCoderRecord
+                {
+                    Address = address,
+
+                };
+
                 try
                 {
-                    content = string.Empty;
-                    metroContent = string.Empty;
+                    await RequestYandex(record, address);
 
-                    var tuple = await YandexGeoCoderApiRequest(address, "house");
-
-                    content = tuple.Item1;
-                    var data = tuple.Item2;
-
-                    var record = new GeoCoderRecord
+                    if (record.Precision != "exact" && _daDataSettings.IsEnabled)
                     {
-                        Address = address,
-                        Content = content,
-                        Features = data.response.GeoObjectCollection.featureMember
-                    };
+                        var daDataResponse = await _daData.Check(address, _daDataSettings.ApiKey, _daDataSettings.SecretKey);
 
-                    var feature = data.response.GeoObjectCollection.featureMember.FirstOrDefault();
-
-                    if (feature != null)
-                    {
-
-
-                        var coords = feature.GeoObject.Point.pos.Split(' ');
-                        lat.AppendLine(coords[1]);
-                        lon.AppendLine(coords[0]);
-
-                        record.Lattitude = coords[1];
-                        record.Longitude = coords[0];
-
-                        administrativeAreaName.AppendLine(feature.AdministrativeAreaName());
-                        subAdministrativeAreaName.AppendLine(feature.SubAdministrativeAreaName());
-                        localityName.AppendLine(feature.LocalityName());
-
-                        record.AdministrativeArea = feature.AdministrativeAreaName();
-                        record.SubAdministrativeArea = feature.SubAdministrativeAreaName();
-                        record.Locality = feature.LocalityName();
-
-                        if (string.IsNullOrEmpty(feature.LocalityName()))
+                        if (daDataResponse.Item2.Length == 0)
                         {
-                            Error += "LocalityName == null" + Environment.NewLine + address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+                            Error += "DaData.Length = 0" + Environment.NewLine + address + Environment.NewLine + daDataResponse.Item1;
                             OnPropertyChanged(nameof(Error));
-
-                            record.Error += "LocalityName == null" + Environment.NewLine;
-                        }
-
-                        if (feature.Precision() != "exact")
-                        {
-                            Error += "precision == " + feature.Precision() + Environment.NewLine + address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
-                            OnPropertyChanged(nameof(Error));
-
-                            record.Error += "precision == " + feature.Precision();
-                        }
-
-                        //if (string.IsNullOrEmpty(feature.SubAdministrativeAreaName()))
-                        //{
-                        //    Error += "SubAdministrativeAreaName == null" + Environment.NewLine + address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
-                        //    OnPropertyChanged(nameof(Error));
-                        //}
-
-                        var metroTuple = await YandexGeoCoderApiRequest(feature.GeoObject.Point.pos, "metro");
-
-                        metroContent = metroTuple.Item1;
-                        var metroData = metroTuple.Item2;
-
-                        if (metroData.response.GeoObjectCollection.featureMember.Length > 0)
-                        {
-                            metro.AppendLine(metroData.response.GeoObjectCollection.featureMember[0].GeoObject.name);
-                            record.Metro = metroData.response.GeoObjectCollection.featureMember[0].GeoObject.name;
                         }
                         else
                         {
-                            metro.AppendLine(string.Empty);
-                            record.Metro = string.Empty;
+                            if (daDataResponse.Item2[0].qc == 0)
+                            {
+                                string requestAddress = daDataResponse.Item2[0].result;
+                                record = new GeoCoderRecord
+                                {
+                                    Address = requestAddress
+                                };
+
+                                await RequestYandex(record, requestAddress);
+                            }
+                            else
+                            {
+                                Error += "DaData.qc = " + daDataResponse.Item2[0].qc + Environment.NewLine + address + Environment.NewLine + daDataResponse.Item1;
+                                OnPropertyChanged(nameof(Error));
+                            }
                         }
-
-                        
-
-                        Records.Add(record);
                     }
-                    else
+
+                    if (string.IsNullOrEmpty(record.Locality))
                     {
-                        Error += address + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+                        Error += "LocalityName == null" + Environment.NewLine + address + Environment.NewLine + record.Content + Environment.NewLine + record.MetroContent + Environment.NewLine;
                         OnPropertyChanged(nameof(Error));
-
-                        lat.AppendLine(string.Empty);
-                        lon.AppendLine(string.Empty);
-                        metro.AppendLine(string.Empty);
-                        administrativeAreaName.AppendLine(string.Empty);
-                        subAdministrativeAreaName.AppendLine(string.Empty);
-                        localityName.AppendLine(string.Empty);
-
-                        Records.Add(new GeoCoderRecord
-                        {
-                            Address = address,
-                            Lattitude = string.Empty,
-                            Longitude = string.Empty,
-                            Metro = string.Empty,
-                            AdministrativeArea = string.Empty,
-                            SubAdministrativeArea = string.Empty,
-                            Locality = string.Empty,
-                            Content = content,
-                            Error = "не найдено адресов"
-                        });
                     }
+
+                    if (record.Precision != "exact")
+                    {
+                        Error += "precision == " + record.Precision + Environment.NewLine + address + Environment.NewLine + record.Content + Environment.NewLine + record.MetroContent + Environment.NewLine;
+                        OnPropertyChanged(nameof(Error));
+                    }
+
+                    Records.Add(record);
+
                 }
                 catch (Exception exc)
                 {
-                    Error += address + Environment.NewLine + exc + Environment.NewLine + content + Environment.NewLine + metroContent + Environment.NewLine;
+                    Error += address + Environment.NewLine + exc + Environment.NewLine + record.Content + Environment.NewLine + record.MetroContent + Environment.NewLine;
                     OnPropertyChanged(nameof(Error));
                     break;
                 }
@@ -302,6 +326,45 @@ namespace GeoCoder
             OnPropertyChanged(nameof(YandexCodeCommandText));
             CanGoogleGeoCode = true;
             OnPropertyChanged(nameof(CanGoogleGeoCode));
+        }
+
+        private async Task RequestYandex(GeoCoderRecord record, string address)
+        {
+            var tuple = await YandexGeoCoderApiRequest(address, "house");
+
+            record.Content = tuple.Item1;
+            var data = tuple.Item2;
+            record.Features = data?.response?.GeoObjectCollection?.featureMember ?? new featureMember[0];
+
+            var feature = data?.response?.GeoObjectCollection?.featureMember?.FirstOrDefault();
+
+            if (feature != null)
+            {
+                var coords = feature.GeoObject.Point.pos.Split(' ');
+
+                record.Lattitude = coords[1];
+                record.Longitude = coords[0];
+
+                record.AdministrativeArea = feature.AdministrativeAreaName();
+                record.SubAdministrativeArea = feature.SubAdministrativeAreaName();
+                record.Locality = feature.LocalityName();
+
+                record.Precision = feature.Precision();
+
+                var metroTuple = await YandexGeoCoderApiRequest(feature.GeoObject.Point.pos, "metro");
+
+                record.MetroContent = metroTuple.Item1;
+                var metroData = metroTuple.Item2;
+
+                if ((metroData?.response?.GeoObjectCollection?.featureMember?.Length ?? 0) > 0)
+                {
+                    record.Metro = metroData?.response?.GeoObjectCollection?.featureMember?[0].GeoObject?.name;
+                }
+                else
+                {
+                    record.Metro = string.Empty;
+                }
+            }
         }
 
         private async Task<Tuple<string, GeoCoderApiResponse>> YandexGeoCoderApiRequest(string address, string kind)
@@ -395,7 +458,34 @@ namespace GeoCoder
 
                 try
                 {
-                    var tuple = await GoogleGeoCoderApiRequest(address);
+                    string requestAddress = address;
+
+                    if (_daDataSettings.IsEnabled)
+                    {
+                        var daDataResponse = await _daData.Check(address, _daDataSettings.ApiKey, _daDataSettings.SecretKey);
+
+                        if (daDataResponse.Item2.Length == 0)
+                        {
+                            Error += "DaData.Length = 0" + Environment.NewLine + address + Environment.NewLine + daDataResponse.Item1;
+                            OnPropertyChanged(nameof(Error));
+                        }
+                        else
+                        {
+                            if (daDataResponse.Item2[0].qc == 0)
+                            {
+                                requestAddress = daDataResponse.Item2[0].result;
+                            }
+                            else
+                            {
+                                Error += "DaData.qc = " + daDataResponse.Item2[0].qc + Environment.NewLine + address + Environment.NewLine + daDataResponse.Item1;
+                                OnPropertyChanged(nameof(Error));
+                            }
+                        }
+                    }
+
+                    record.Address = requestAddress;
+
+                    var tuple = await GoogleGeoCoderApiRequest(requestAddress);
                     var content = tuple.Item1;
                     var data = tuple.Item2;
 
@@ -495,5 +585,26 @@ namespace GeoCoder
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public ICommand EditSettings
+        {
+            get { return new DelegatingCommand(EditSettingsImpl); }
+        }
+
+        private void EditSettingsImpl()
+        {
+            var view = new SettingsEditorView(_daDataSettings);
+            if (view.ShowDialog() == true)
+            {
+                SaveDaDataSettings(_daDataSettings);
+            }
+        }
+    }
+
+    public class DaDataSettings
+    {
+        public bool IsEnabled { get; set; }
+        public string ApiKey { get; set; }
+        public string SecretKey { get; set; }
     }
 }

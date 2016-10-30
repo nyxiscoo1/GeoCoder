@@ -62,6 +62,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DaData\DaDataAddressResponseTests.cs" />
     <Compile Include="Google\GeoCoderResponseTests.cs" />
     <Compile Include="Yandex\GeoCoderResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

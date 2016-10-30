@@ -8,70 +8,212 @@
         Icon="Application.ico">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
+        <Menu x:Name="menu">
+            <Menu.Items>
+                <MenuItem Header="_Сервис">
+                    <MenuItem Header="Настройки..." Command="{Binding EditSettings}"/>
+                </MenuItem>
+            </Menu.Items>
+        </Menu>
+        
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Адреса" TextAlignment="Left" Margin="5 5 5 0"/>
-            
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding Adresses}" AcceptsReturn="True"  Margin="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
-           
-        </Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Records}" SelectionMode="Extended" SelectionUnit="CellOrRowHeader" GridLinesVisibility="None" AlternatingRowBackground="WhiteSmoke" AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" Width="3*" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="Широта" Binding="{Binding Lattitude}" Width="*" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="Долгота" Binding="{Binding Longitude}" Width="*" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="Метро" Binding="{Binding Metro}" Width="*" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="AdministrativeArea" Binding="{Binding AdministrativeArea}" Width="*" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="SubAdministrativeArea" Binding="{Binding SubAdministrativeArea}" Width="*" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="Locality" Binding="{Binding Locality}" Width="*" IsReadOnly="True"></DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <TextBox Grid.Row="2" Text="{Binding Error}" Foreground="Crimson"  Margin="5"/>
-
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="100" />
-            </Grid.ColumnDefinitions>
-
-            <ProgressBar Grid.Column="0" Maximum="{Binding MaxProgress}" Value="{Binding CurrentProgress}" Margin="5" Height="10"></ProgressBar>
-
-            <Button Grid.Column="1" Command="{Binding YandexGeoCode}" Height="25" Margin="5" Content="{Binding YandexCodeCommandText}" IsEnabled="{Binding CanYandexGeoCode}"/>
-        </Grid>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Адреса" TextAlignment="Left" Margin="5 5 5 0"/>
 
 
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="100" />
-            </Grid.ColumnDefinitions>
+                <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding Adresses}" AcceptsReturn="True"  Margin="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
 
-            <TextBlock VerticalAlignment="Center" Margin="5">API ключ</TextBlock>
-            <TextBox Grid.Column="1" Text="{Binding GoogleApiKey}" Margin="5"></TextBox>
+            </Grid>
 
-            <Button Grid.Column="2" Command="{Binding GoogleGeoCode}" Height="25" Margin="5" Content="{Binding GoogleCodeCommandText}" IsEnabled="{Binding CanGoogleGeoCode}"/>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Records}" SelectionMode="Extended" SelectionUnit="CellOrRowHeader" GridLinesVisibility="None" AlternatingRowBackground="WhiteSmoke" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" Width="3*" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Широта" Binding="{Binding Lattitude}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Долгота" Binding="{Binding Longitude}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Метро" Binding="{Binding Metro}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="AdministrativeArea" Binding="{Binding AdministrativeArea}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="SubAdministrativeArea" Binding="{Binding SubAdministrativeArea}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Locality" Binding="{Binding Locality}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <TextBox Grid.Row="2" Text="{Binding Error}" Foreground="Crimson"  Margin="5"/>
+
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+
+                <ProgressBar Grid.Column="0" Maximum="{Binding MaxProgress}" Value="{Binding CurrentProgress}" Margin="5" Height="10"></ProgressBar>
+
+                <Button Grid.Column="1" Command="{Binding YandexGeoCode}" Height="25" Margin="5" Content="{Binding YandexCodeCommandText}" IsEnabled="{Binding CanYandexGeoCode}"/>
+            </Grid>
+
+
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock VerticalAlignment="Center" Margin="5">API ключ</TextBlock>
+                <TextBox Grid.Column="1" Text="{Binding GoogleApiKey}" Margin="5"></TextBox>
+
+                <Button Grid.Column="2" Command="{Binding GoogleGeoCode}" Height="25" Margin="5" Content="{Binding GoogleCodeCommandText}" IsEnabled="{Binding CanGoogleGeoCode}"/>
+            </Grid>
         </Grid>
     </Grid>
 </Window>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
