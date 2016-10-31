@@ -342,8 +342,8 @@ namespace GeoCoder
             {
                 var coords = feature.GeoObject.Point.pos.Split(' ');
 
-                record.Lattitude = coords[1];
-                record.Longitude = coords[0];
+                record.Lattitude = coords[1].Replace(".", ",");
+                record.Longitude = coords[0].Replace(".", ",");
 
                 record.AdministrativeArea = feature.AdministrativeAreaName();
                 record.SubAdministrativeArea = feature.SubAdministrativeAreaName();
@@ -514,8 +514,8 @@ namespace GeoCoder
                         var location = data.results[0].geometry.location;
                         lat.AppendLine(location.lat);
                         lon.AppendLine(location.lng);
-                        record.Lattitude = location.lat;
-                        record.Longitude = location.lng;
+                        record.Lattitude = location.lat.Replace(".", ",");
+                        record.Longitude = location.lng.Replace(".", ",");
                     }
 
                     //var metroData = await YandexGeoCoderApiRequest(data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos, "metro");
