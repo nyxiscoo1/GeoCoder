@@ -330,8 +330,8 @@ namespace Tests.DaData
             var response = DaDataAddressResponse.Parse(json);
 
             Assert.AreEqual(3, response.Length);
-            Assert.AreEqual("Ленинградская обл, Всеволожский р-н, массив 39 км Мурманского шоссе, снт Двигатель, линия 7-я, влд 2", response[0].result);
-            Assert.AreEqual(1, response[0].qc);
+            Assert.AreEqual("г Москва, ул Сухонская, д 11, кв 89", response[0].result);
+            Assert.AreEqual(0, response[0].qc);
         }
     }
 }
