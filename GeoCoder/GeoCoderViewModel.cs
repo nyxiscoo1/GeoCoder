@@ -289,6 +289,7 @@ namespace GeoCoder
                                 };
 
                                 await RequestYandex(record, requestAddress);
+                                record.Address = requestAddress;
                             }
                             else
                             {
@@ -350,6 +351,8 @@ namespace GeoCoder
                 record.Locality = feature.LocalityName();
 
                 record.Precision = feature.Precision();
+
+                record.Address = feature.Text();
 
                 var metroTuple = await YandexGeoCoderApiRequest(feature.GeoObject.Point.pos, "metro");
 
