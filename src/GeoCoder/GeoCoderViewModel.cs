@@ -4,68 +4,17 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Mime;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using GeoCoder.Annotations;
 using GeoCoder.DaData;
 using GeoCoder.Google;
 using GeoCoder.Yandex;
-using Quiche;
 
 namespace GeoCoder
 {
-    public class GeoCoderRecord
-    {
-        public string Address { get; set; }
-        public string Lattitude { get; set; }
-        public string Longitude { get; set; }
-        public string Metro { get; set; }
-        public string AdministrativeArea { get; set; }
-        public string SubAdministrativeArea { get; set; }
-        public string Locality { get; set; }
-        public string Error { get; set; }
-        public string Content { get; set; }
-        public featureMember[] Features { get; set; }
-        public string Precision { get; set; }
-        public string MetroContent { get; set; }
-    }
-
-    public class DaDataGateway
-    {
-        private readonly HttpClient _client;
-
-        public DaDataGateway()
-        {
-            _client = new HttpClient();
-        }
-
-        public async Task<Tuple<string, DaDataAddressResponse[]>> Check(string address, string apiKey, string secretKey)
-        {
-            string request = new[]
-            {
-                address
-            }.JsonSerialize();
-
-            var content = new StringContent(request, Encoding.UTF8);
-
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            _client.DefaultRequestHeaders.Clear();
-            _client.DefaultRequestHeaders.Add("Authorization", "Token " + apiKey);
-            _client.DefaultRequestHeaders.Add("X-Secret", secretKey);
-
-            var response = await _client.PostAsync("https://dadata.ru/api/v2/clean/address", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return Tuple.Create(responseContent, DaDataAddressResponse.Parse(responseContent));
-        }
-    }
-
     public class GeoCoderViewModel : INotifyPropertyChanged
     {
         public ObservableCollection<GeoCoderRecord> Records { get; } = new ObservableCollection<GeoCoderRecord>();
@@ -76,9 +25,9 @@ namespace GeoCoder
         public string GoogleCodeCommandText { get; set; } = "Google";
         public bool CanGoogleGeoCode { get; set; } = true;
 
-        public string Adresses { get; set; } = string.Empty;
+        public string Adresses { get; set; }
         public string Error { get; set; } = string.Empty;
-        public string GoogleApiKey { get; set; } = string.Empty;
+        public string GoogleApiKey { get; set; }
 
         public int MaxProgress { get; set; } = 1;
         public int CurrentProgress { get; set; } = 0;
@@ -87,11 +36,15 @@ namespace GeoCoder
 
         private readonly DaDataGateway _daData;
         private readonly DaDataSettings _daDataSettings;
+        private readonly YandexApiGateway _yandex;
+        private readonly GoogleApiGateway _google;
 
         public GeoCoderViewModel()
         {
             _client = new HttpClient();
             _daData = new DaDataGateway();
+            _yandex = new YandexApiGateway();
+            _google = new GoogleApiGateway();
             //Adresses = "Воронеж, Московский пр., 129/1";
 
             GoogleApiKey = LoadGoogleApiKey();
@@ -331,7 +284,7 @@ namespace GeoCoder
 
         private async Task RequestYandex(GeoCoderRecord record, string address)
         {
-            var tuple = await YandexGeoCoderApiRequest(address, "house");
+            var tuple = await _yandex.HouseAt(address);
 
             record.Content = tuple.Item1;
             var data = tuple.Item2;
@@ -354,7 +307,7 @@ namespace GeoCoder
 
                 record.Address = feature.Text();
 
-                var metroTuple = await YandexGeoCoderApiRequest(feature.GeoObject.Point.pos, "metro");
+                var metroTuple = await _yandex.NearestMetroTo(feature.GeoObject.Point.pos);
 
                 record.MetroContent = metroTuple.Item1;
                 var metroData = metroTuple.Item2;
@@ -369,36 +322,6 @@ namespace GeoCoder
                 }
             }
         }
-
-        private async Task<Tuple<string, GeoCoderApiResponse>> YandexGeoCoderApiRequest(string address, string kind)
-        {
-            var queryUrl = BuildQueryUrl(address, kind);
-
-            var response = await _client.GetAsync(queryUrl);
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            var data = content.JsonDeserialize<GeoCoderApiResponse>();
-            return Tuple.Create(content, data);
-        }
-
-        private static string BuildQueryUrl(string address, string kind)
-        {
-            var builder = new Builder();
-            var obj = new
-            {
-                format = "json",
-                geocode = address,
-                kind = kind
-            };
-
-            var result = builder.ToQueryString(obj);
-
-            string queryUrl = "https://geocode-maps.yandex.ru/1.x/" + result;
-            return queryUrl;
-        }
-
 
         public ICommand GoogleGeoCode
         {
@@ -434,10 +357,6 @@ namespace GeoCoder
             _isStarted = true;
             Error = string.Empty;
             OnPropertyChanged(nameof(Error));
-
-            var lat = new StringBuilder();
-            var lon = new StringBuilder();
-            var metro = new StringBuilder();
 
             var addresses = Adresses.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -488,7 +407,7 @@ namespace GeoCoder
 
                     record.Address = requestAddress;
 
-                    var tuple = await GoogleGeoCoderApiRequest(requestAddress);
+                    var tuple = await _google.GoogleGeoCoderApiRequest(requestAddress, GoogleApiKey);
                     var content = tuple.Item1;
                     var data = tuple.Item2;
 
@@ -507,16 +426,14 @@ namespace GeoCoder
                         record.Error += Environment.NewLine;
 
                         OnPropertyChanged(nameof(Error));
-                        lat.AppendLine(string.Empty);
-                        lon.AppendLine(string.Empty);
+
                         record.Lattitude = string.Empty;
                         record.Longitude = string.Empty;
                     }
                     else
                     {
                         var location = data.results[0].geometry.location;
-                        lat.AppendLine(location.lat);
-                        lon.AppendLine(location.lng);
+
                         record.Lattitude = location.lat.Replace(".", ",");
                         record.Longitude = location.lng.Replace(".", ",");
                     }
@@ -551,36 +468,6 @@ namespace GeoCoder
             OnPropertyChanged(nameof(CanYandexGeoCode));
         }
 
-        private async Task<Tuple<string, GeoCodeApiResponse>> GoogleGeoCoderApiRequest(string address)
-        {
-            var queryUrl = GoogleBuildQueryUrl(address, GoogleApiKey);
-
-            var response = await _client.GetAsync(queryUrl);
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            var data = content.JsonDeserialize<GeoCodeApiResponse>();
-            return Tuple.Create(content, data);
-        }
-
-        private static string GoogleBuildQueryUrl(string address, string apiKey)
-        {
-            var builder = new Builder();
-            var obj = new
-            {
-                language = "ru",
-                address = address,
-                key = apiKey,
-                type = "street_address"
-            };
-
-            var result = builder.ToQueryString(obj);
-
-            string queryUrl = "https://maps.googleapis.com/maps/api/geocode/json" + result;
-            return queryUrl;
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -602,12 +489,5 @@ namespace GeoCoder
                 SaveDaDataSettings(_daDataSettings);
             }
         }
-    }
-
-    public class DaDataSettings
-    {
-        public bool IsEnabled { get; set; }
-        public string ApiKey { get; set; }
-        public string SecretKey { get; set; }
     }
 }

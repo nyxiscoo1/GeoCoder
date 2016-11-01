@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 
 namespace GeoCoder.Yandex
 {
@@ -51,15 +50,6 @@ namespace GeoCoder.Yandex
                 return string.Empty;
 
             return string.Join(", ", areas);
-
-            return
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?.Value<string>("SubAdministrativeAreaName") ??
-                string.Empty;
         }
 
         public string Precision()

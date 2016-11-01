@@ -44,8 +44,9 @@ Task("Build")
     {
       // Use MSBuild
       MSBuild("./src/GeoCoder.sln", settings =>
-        settings.SetConfiguration(configuration)
-          
+        settings
+			.SetConfiguration(configuration)
+			.SetVerbosity(Verbosity.Minimal)       
           );
     }
     else
