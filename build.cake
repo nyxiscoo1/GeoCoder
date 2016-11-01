@@ -70,6 +70,8 @@ Task("Publish")
     .IsDependentOn("Run-Unit-Tests")
     .Does(() =>
 {
+    DeleteFiles(buildDir.ToString() + "/*.xml");
+    Information(buildDir.ToString() + "/*.xml");
     EnsureDirectoryExists(distrDir);
     Zip(buildDir, distrDir + File("GeoCoder v" + fullVersion + ".zip"));
 });
