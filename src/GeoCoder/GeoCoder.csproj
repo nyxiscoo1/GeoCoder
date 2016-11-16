@@ -105,6 +105,7 @@
     <Compile Include="Yandex\GeoCoderResponse.cs" />
     <Compile Include="Yandex\GeoObject.cs" />
     <Compile Include="Yandex\GeoObjectCollection.cs" />
+    <Compile Include="Yandex\JTokenExtensions.cs" />
     <Compile Include="Yandex\Point.cs" />
     <Compile Include="Yandex\YandexApiGateway.cs" />
     <Compile Include="Yandex\YandexCacheRecord.cs" />

@@ -9,16 +9,16 @@ namespace GeoCoder.Yandex
         public string LocalityName()
         {
             return
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.Value<string>("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["SubAdministrativeArea"]?["Locality"]?.AsString("LocalityName") ??
                 string.Empty;
 
         }
@@ -26,8 +26,8 @@ namespace GeoCoder.Yandex
         public string AdministrativeAreaName()
         {
             return
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?.Value<string>("AdministrativeAreaName") ??
-                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?.Value<string>("AdministrativeAreaName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["AdministrativeArea"]?.AsString("AdministrativeAreaName") ??
+                GeoObject.metaDataProperty["GeocoderMetaData"]?["AddressDetails"]?["Country"]?["AdministrativeArea"]?.AsString("AdministrativeAreaName") ??
                 string.Empty;
         }
 
@@ -42,7 +42,7 @@ namespace GeoCoder.Yandex
 
             while (subArea != null)
             {
-                areas.Add(subArea.Value<string>("SubAdministrativeAreaName"));
+                areas.Add(subArea.AsString("SubAdministrativeAreaName"));
                 subArea = subArea["SubAdministrativeArea"];
             }
 
@@ -54,12 +54,12 @@ namespace GeoCoder.Yandex
 
         public string Precision()
         {
-            return GeoObject.metaDataProperty["GeocoderMetaData"]?.Value<string>("precision") ?? string.Empty;
+            return GeoObject.metaDataProperty["GeocoderMetaData"]?.AsString("precision") ?? string.Empty;
         }
 
         public string Text()
         {
-            return (GeoObject.metaDataProperty["GeocoderMetaData"]?.Value<string>("text") ?? string.Empty).Replace("Россия, ", string.Empty);
+            return (GeoObject.metaDataProperty["GeocoderMetaData"]?.AsString("text") ?? string.Empty).Replace("Россия, ", string.Empty);
         }
     }
 }
