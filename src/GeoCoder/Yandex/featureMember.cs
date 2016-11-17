@@ -59,7 +59,7 @@ namespace GeoCoder.Yandex
 
         public string Text()
         {
-            return (GeoObject.metaDataProperty["GeocoderMetaData"]?.AsString("text") ?? string.Empty).Replace("Россия, ", string.Empty);
+            return (GeoObject.metaDataProperty["GeocoderMetaData"]?.AsString("text") ?? GeoObject.name ?? string.Empty).Replace("Россия, ", string.Empty);
         }
     }
 }

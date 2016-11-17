@@ -108,5 +108,75 @@ namespace Tests.Yandex
             Assert.AreEqual("near", response.response.GeoObjectCollection.featureMember[0].Precision());
             Assert.AreEqual("Московская область, городской округ Мытищи, с1вл3", response.response.GeoObjectCollection.featureMember[0].Text());
         }
+
+        [Test]
+        public void Should_deserialize2()
+        {
+            var json = @"{
+  ""response"": {
+    ""GeoObjectCollection"": {
+      ""metaDataProperty"": {
+        ""GeocoderResponseMetaData"": {
+          ""request"": ""Москва, ул.Маршала Бирюзова, д.32"",
+          ""found"": ""2"",
+          ""results"": ""10"",
+          ""boundedBy"": {
+            ""Envelope"": {
+              ""lowerCorner"": ""-0.002497 -0.002496"",
+              ""upperCorner"": ""0.002497 0.002496""
+            }
+          }
+        }
+      },
+      ""featureMember"": [
+        {
+          ""GeoObject"": {
+            ""metaDataProperty"": { ""SearchMetaData"": { ""logId"": ""dHlwZT1nZW87YWRkcmVzcz3QoNC+0YHRgdC40Y8sINCc0L7RgdC60LLQsCwg0YPQu9C40YbQsCDQnNCw0YDRiNCw0LvQsCDQkdC40YDRjtC30L7QstCwLCAzMi8zNy40ODMwMjMsNTUuNzk5NTg4"" } },
+            ""description"": ""Москва, Россия"",
+            ""name"": ""улица Маршала Бирюзова, 32"",
+            ""boundedBy"": {
+              ""Envelope"": {
+                ""lowerCorner"": ""37.478917 55.797275"",
+                ""upperCorner"": ""37.487128 55.8019""
+              }
+            },
+            ""Point"": { ""pos"": ""37.483023 55.799588"" }
+          }
+        },
+        {
+          ""GeoObject"": {
+            ""metaDataProperty"": { ""SearchMetaData"": { ""logId"": ""dHlwZT1nZW87YWRkcmVzcz3QoNC+0YHRgdC40Y8sINCc0L7RgdC60L7QstGB0LrQsNGPINC+0LHQu9Cw0YHRgtGMLCDQntC00LjQvdGG0L7QstC+LCDRg9C70LjRhtCwINCc0LDRgNGI0LDQu9CwINCR0LjRgNGO0LfQvtCy0LAsIDMw0JAvMzcuMjY2NzYyLDU1LjY4MTk5MQ=="" } },
+            ""description"": ""Одинцово, Московская область, Россия"",
+            ""name"": ""улица Маршала Бирюзова, 30А"",
+            ""boundedBy"": {
+              ""Envelope"": {
+                ""lowerCorner"": ""37.262657 55.679671"",
+                ""upperCorner"": ""37.270868 55.68431""
+              }
+            },
+            ""Point"": { ""pos"": ""37.266762 55.681991"" }
+          }
+        }
+      ]
+    }
+  }
+}";
+
+            var response = json.JsonDeserialize<GeoCoderApiResponse>();
+
+            Assert.IsNotNull(response.response);
+            Assert.IsNotNull(response.response.GeoObjectCollection);
+            Assert.IsNotNull(response.response.GeoObjectCollection.featureMember);
+            Assert.AreEqual(2, response.response.GeoObjectCollection.featureMember.Length);
+            Assert.IsNotNull(response.response.GeoObjectCollection.featureMember[0].GeoObject);
+            Assert.IsNotNull(response.response.GeoObjectCollection.featureMember[0].GeoObject.Point);
+            Assert.IsNotNull(response.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos);
+            Assert.AreEqual("37.483023 55.799588", response.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos);
+            Assert.AreEqual(string.Empty, response.response.GeoObjectCollection.featureMember[0].LocalityName());
+            Assert.AreEqual(string.Empty, response.response.GeoObjectCollection.featureMember[0].AdministrativeAreaName());
+            Assert.AreEqual(string.Empty, response.response.GeoObjectCollection.featureMember[0].SubAdministrativeAreaName());
+            Assert.AreEqual(string.Empty, response.response.GeoObjectCollection.featureMember[0].Precision());
+            Assert.AreEqual("улица Маршала Бирюзова, 32", response.response.GeoObjectCollection.featureMember[0].Text());
+        }
     }
 }
