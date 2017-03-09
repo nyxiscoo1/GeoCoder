@@ -107,6 +107,7 @@
     <Compile Include="Yandex\GeoObjectCollection.cs" />
     <Compile Include="Yandex\JTokenExtensions.cs" />
     <Compile Include="Yandex\Point.cs" />
+    <Compile Include="Yandex\Substitutor.cs" />
     <Compile Include="Yandex\YandexApiGateway.cs" />
     <Compile Include="Yandex\YandexCacheRecord.cs" />
     <Page Include="MainWindow.xaml">

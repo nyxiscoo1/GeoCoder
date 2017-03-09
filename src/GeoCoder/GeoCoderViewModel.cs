@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,8 +31,6 @@ namespace GeoCoder
         public int MaxProgress { get; set; } = 1;
         public int CurrentProgress { get; set; } = 0;
 
-        private readonly HttpClient _client;
-
         private readonly DaDataGateway _daData;
         private readonly DaDataSettings _daDataSettings;
         private readonly YandexApiGateway _yandex;
@@ -41,7 +38,6 @@ namespace GeoCoder
 
         public GeoCoderViewModel()
         {
-            _client = new HttpClient();
             _daData = new DaDataGateway();
             _yandex = new YandexApiGateway();
             _google = new GoogleApiGateway();
@@ -51,6 +47,24 @@ namespace GeoCoder
             Adresses = LoadAddresses();
 
             _daDataSettings = LoadDaDataSettings();
+
+            CreateEmptyYandexSubstitutiorFile();
+        }
+
+        private void CreateEmptyYandexSubstitutiorFile()
+        {
+            try
+            {
+                var yandexSubstitutionPath = YandexSubstitutorFilePath();
+                if (File.Exists(yandexSubstitutionPath))
+                    return;
+
+                File.Create(yandexSubstitutionPath).Dispose();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc);
+            }
         }
 
         private DaDataSettings LoadDaDataSettings()
@@ -203,6 +217,9 @@ namespace GeoCoder
             OnPropertyChanged(nameof(CurrentProgress));
             OnPropertyChanged(nameof(MaxProgress));
 
+            var yandexSubstitutionPath = YandexSubstitutorFilePath();
+            var substitutor = Substitutor.FromFile(yandexSubstitutionPath);
+
             foreach (var address in addresses)
             {
                 if (!_isStarted)
@@ -220,7 +237,7 @@ namespace GeoCoder
 
                 try
                 {
-                    await RequestYandex(record, address);
+                    await RequestYandex(record, address, substitutor);
 
                     if (record.Precision != "exact" && _daDataSettings.IsEnabled)
                     {
@@ -241,8 +258,8 @@ namespace GeoCoder
                                     Address = requestAddress
                                 };
 
-                                await RequestYandex(record, requestAddress);
-                                record.Address = requestAddress;
+                                await RequestYandex(record, requestAddress, substitutor);
+                                record.Address = substitutor.Substitute(requestAddress);
                             }
                             else
                             {
@@ -282,7 +299,13 @@ namespace GeoCoder
             OnPropertyChanged(nameof(CanGoogleGeoCode));
         }
 
-        private async Task RequestYandex(GeoCoderRecord record, string address)
+        private static string YandexSubstitutorFilePath()
+        {
+            string yandexSubstitutionPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "YandexSubstitution.txt");
+            return yandexSubstitutionPath;
+        }
+
+        private async Task RequestYandex(GeoCoderRecord record, string address, Substitutor substitutor)
         {
             var tuple = await _yandex.HouseAt(address);
 
@@ -305,7 +328,7 @@ namespace GeoCoder
 
                 record.Precision = feature.Precision();
 
-                record.Address = feature.Text();
+                record.Address = substitutor.Substitute(feature.Text());
 
                 var metroTuple = await _yandex.NearestMetroTo(feature.GeoObject.Point.pos);
 
@@ -342,6 +365,8 @@ namespace GeoCoder
 
             SaveAddresses();
             SaveGoogleApiKey();
+
+            Records.Clear();
 
             if (string.IsNullOrWhiteSpace(GoogleApiKey))
             {
